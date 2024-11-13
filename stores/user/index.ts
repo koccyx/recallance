@@ -1,41 +1,63 @@
 import { defineStore } from "pinia";
 import { AuthController } from "@/api/authController";
-import { async } from "rxjs";
+import type { User } from "@/api/types/User";
+import { UserMapper } from "@/stores/user/mapper";
+import axios from "axios";
+import { useRuntimeConfig } from "nuxt/app";
+import { useProductsStrore } from "@/stores/products";
 
 const authController = new AuthController();
 
 export const useUserStrore = defineStore("user", () => {
-	const token = ref<string>("");
-	const isAuth = ref<boolean>(false);
-	const name = ref<string>("")
 	
-	const user = reactive({
-		login: "",
-		password: "",
-		email: ""
+	const user = ref<User>({
+		name: "",
+		id: "",
+		accessToken: ""
 	});
 	
-	async function checkAuth() {
+	const isAuth = computed<boolean>(() => !!user.value.accessToken);
 	
+	async function checkAuth() {
+		try {
+			const { public: { BASE_API_URL } } = useRuntimeConfig();
+			
+			const { data } = await axios.get(`${BASE_API_URL}/auth/refresh`, {
+				withCredentials: true
+			});
+			
+			localStorage.setItem("token", data.accessToken);
+			
+			user.value = UserMapper.map(data);
+			
+		} catch (ex) {
+			console.error(ex);
+		}
 	}
 	
-	async function login() {
+	async function login(login: string, password: string) {
 		try {
-			const { data } = await authController.login(user.login, user.password);
+			const { data } = await authController.login(login, password);
 			
-			localStorage.setItem("token", data.token);
+			localStorage.setItem("token", data.accessToken);
 			
-			token.value = data.token;
-			isAuth.value = true;
-			name.value = data.name;
+			user.value = UserMapper.map(data);
+			
+			navigateTo("/products");
 		} catch (ex) {
 			console.log(ex);
 		}
 	}
 	
-	async function registration() {
+	async function registration(login: string, password: string) {
 		try {
-			await authController.registeration(user.login, user.password, user.email);
+			const { data } = await authController.registeration(login, password);
+			
+			localStorage.setItem("token", data.accessToken);
+			
+			user.value = UserMapper.map(data);
+			
+			navigateTo("/products");
 		} catch (ex) {
 			console.log(ex);
 		}
@@ -44,16 +66,40 @@ export const useUserStrore = defineStore("user", () => {
 	function logout() {
 		localStorage.removeItem("token");
 		
-		token.value = "";
-		isAuth.value = false;
+		user.value = {} as User;
+		
+		navigateTo("/");
 	}
 	
 	function destroy() {
-		user.login = "";
-		user.password = "";
 	}
 	
-	return { token, isAuth, name, user, login, registration, logout, destroy}
+	async function initialize() {
+		if(localStorage.getItem("token")) {
+			await checkAuth();
+		}
+	}
+	
+	async function can(productId: string) {
+		const can = ref<boolean>(true);
+		
+		const productStore = useProductsStrore();
+		
+		if(!productStore.initialized) {
+			await productStore.fetch();
+		}
+		
+		const userProducts = productStore.products;
+		
+		console.log(userProducts);
+		const isProductIncluded = userProducts.find((product) => product.id === productId);
+		
+		can.value = !!isProductIncluded;
+		console.log(can.value);
+		return can;
+	}
+	
+	return { isAuth, user, can, login, registration, logout, destroy, initialize };
 });
 
 

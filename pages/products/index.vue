@@ -13,13 +13,16 @@
 						</v-row>
 						<v-row>
 							<v-col cols="12">
-								<inputs-text-input>
+								<inputs-text-input
+									v-model="productName"
+									:min-length="5"
+								>
 								</inputs-text-input>
 							</v-col>
 						</v-row>
 						<v-row>
 							<v-col cols="12">
-								<v-btn variant="flat" :color="colors.primary">
+								<v-btn variant="flat" :color="colors.primary" @click="store.createProduct(productName)">
 									create product
 								</v-btn>
 							</v-col>
@@ -32,23 +35,12 @@
 		<template #default>
 			<v-container class="pa-0">
 				<v-row>
-					<v-col md="6" sm="12">
-						<v-card class="d-flex pa-2" height="100px">
-							<v-card-item>
+					<v-col sm="12" md="6" v-for="product in store.products">
+						<v-card @click="handleProductSelect(product.id)" class="d-flex pa-2" height="100px">
+							<v-card-item >
 								<v-card-title>
 									<typography-text tag="h3">
-										NEW PRODUCT!
-									</typography-text>
-								</v-card-title>
-							</v-card-item>
-						</v-card>
-					</v-col>
-					<v-col sm="12" md="6">
-						<v-card class="d-flex pa-2" height="100px">
-							<v-card-item>
-								<v-card-title>
-									<typography-text tag="h3">
-										NEW PRODUCT!
+										{{ product.name }}
 									</typography-text>
 								</v-card-title>
 							</v-card-item>
@@ -61,9 +53,24 @@
 </template>
 
 <script setup lang="ts">
+import { useProductsStrore } from "@/stores/products";
+
 const { colors } = useColors();
 
+const useStore = useProductsStrore;
+const store = useStore();
+
+const productName = ref<string>("");
+
+const handleProductSelect = (id: string) => {
+	 navigateTo({ name: "product-id", params: { id } });
+};
+
+usePage({ useStore });
+
 definePageMeta({
-	layout: "app-layout"
+	name: "products",
+	middleware: "auth",
+	layout: "app-layout",
 });
 </script>

@@ -7,15 +7,15 @@
 						<v-toolbar-title>login form</v-toolbar-title>
 					</v-toolbar>
 					<v-card-text>
-						<v-form ref="form" @submit.prevent="store.login">
+						<v-form ref="form" @submit.prevent="store.login(name, password)">
 							<inputs-text-input
-								v-model="store.user.login"
+								v-model="name"
 								id="login"
 								required
 							></inputs-text-input>
 							
 							<inputs-text-input
-								v-model="store.user.password"
+								v-model="password"
 								id="password"
 								required
 							></inputs-text-input>
@@ -36,10 +36,13 @@ import { useUserStrore } from "@/stores/user";
 const useStore = useUserStrore;
 const store = useStore();
 
+const name = ref<string>("");
+const password = ref<string>("");
+
 const form = ref();
 
-usePage({ useStore })
 definePageMeta({
-	layout: "app-layout"
+	layout: "app-layout",
+	name: "login"
 });
 </script>

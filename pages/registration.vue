@@ -7,27 +7,22 @@
 						<v-toolbar-title>Registration form</v-toolbar-title>
 					</v-toolbar>
 					<v-card-text>
-						<v-form ref="form" @submit.prevent="store.registration">
+						<v-form ref="form" @submit.prevent="store.registration(name, password)">
 							<inputs-text-input
-								v-model="store.user.login"
+								v-model="name"
 								id="login"
 								min-length="5"
 								required
 							></inputs-text-input>
 							
 							<inputs-text-input
-								v-model="store.user.password"
+								v-model="password"
 								id="password"
 								type="password"
-								min-length="7"
+								:min-length="7"
 								required
 							></inputs-text-input>
 							
-							<inputs-text-input
-								v-model="store.user.email"
-								id="email"
-								required
-							></inputs-text-input>
 							<v-btn type="submit" class="mt-4" color="primary" value="log in">Registration</v-btn>
 						</v-form>
 					</v-card-text>
@@ -46,8 +41,12 @@ const store = useStore();
 
 const form = ref();
 
+const name = ref<string>("");
+const password = ref<string>("");
+
 usePage({ useStore })
 definePageMeta({
-	layout: "app-layout"
+	layout: "app-layout",
+	name: "registration"
 });
 </script>

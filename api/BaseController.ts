@@ -1,6 +1,6 @@
 import { type AxiosInstance } from "axios";
 import { httpService } from "@/api/httpService";
-import { addAuthInterceptor } from "@/api/interceptors";
+import { addAuthInterceptor, addTokenInterceptor } from "@/api/interceptors";
 
 export interface BaseController {
 	api: AxiosInstance;
@@ -13,6 +13,7 @@ export class BaseController implements BaseController {
 		this.api = httpService;
 		
 		addAuthInterceptor();
+		addTokenInterceptor();
 	}
 	
 }
